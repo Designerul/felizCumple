@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>¡Feliz Cumpleaños!</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to top, #1a1a1a, #333);
+      color: white;
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    h1 {
+      margin-top: 20%;
+      font-size: 3em;
+      z-index: 1;
+      position: relative;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .rocket {
+      position: absolute;
+      width: 4px;
+      height: 100px;
+      background: linear-gradient(to top, red, yellow);
+      bottom: 0;
+      animation: launch 1.2s cubic-bezier(.4,1.4,.7,1) forwards;
+      z-index: 2;
+    }
+
+    @keyframes launch {
+      0% { bottom: 0; opacity: 1; }
+      100% { bottom: 80vh; opacity: 0.7; }
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: sparkle 1s ease-out forwards;
+      z-index: 3;
+    }
+
+    @keyframes sparkle {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(2.5) translateY(-40px); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎂 ¡Feliz Cumpleaños! 🎉</h1>
+
+  <!-- Sonidos -->
+  <audio id="launch-sound" preload="auto">
+    <source src="https://cdn.pixabay.com/audio/2022/10/16/audio_12b7b7e7c7.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="explosion-sound" preload="auto">
+    <source src="https://cdn.pixabay.com/audio/2023/02/06/audio_a6f3e6cd2c.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const launchSound = document.getElementById('launch-sound');
+    const explosionSound = document.getElementById('explosion-sound');
+
+    // Habilita sonido al primer clic para evitar bloqueo de reproducción automática
+    document.body.addEventListener('click', function initSounds() {
+      launchSound.play().catch(() => {});
+      explosionSound.play().catch(() => {});
+      launchSound.pause();
+      explosionSound.pause();
+      document.body.removeEventListener('click', initSounds);
+    });
+
+    // Paleta de colores para las chispas
+    const sparkleColors = [
+      '#fff700', '#ff6f00', '#ff007f', '#00ffd0', '#00ff2a', '#00aaff', '#ff0000', '#ffffff'
+    ];
+
+    document.body.addEventListener('click', function(e) {
+      // Evita lanzar cohetes si el clic es sobre el título
+      if (e.target.tagName === 'H1') return;
+
+      const rockets = 3;
+      for (let i = 0; i < rockets; i++) {
+        // Posición horizontal cerca del clic, pero siempre desde abajo
+        const x = e.clientX + (Math.random() * 80 - 40);
+
+        const rocket = document.createElement('div');
+        rocket.className = 'rocket';
+        rocket.style.left = `${x}px`;
+        document.body.appendChild(rocket);
+
+        // Sonido de lanzamiento para cada cohete
+        const lSound = launchSound.cloneNode();
+        lSound.play();
+
+        // Sincroniza la explosión visual + sonido
+        setTimeout(() => {
+          rocket.remove();
+
+          // Sonido de explosión
+          const eSound = explosionSound.cloneNode();
+          eSound.play();
+
+          // Explosión de chispas en círculo
+          const sparkles = 18;
+          const centerY = window.innerHeight * 0.2 + 20;
+          for (let j = 0; j < sparkles; j++) {
+            const angle = (2 * Math.PI * j) / sparkles;
+            const radius = 60 + Math.random() * 20;
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = `${x + Math.cos(angle) * radius}px`;
+            sparkle.style.top = `${centerY + Math.sin(angle) * radius}px`;
+            sparkle.style.background = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
+            document.body.appendChild(sparkle);
+            sparkle.addEventListener('animationend', () => sparkle.remove());
+          }
+        }, 1200); // coincide con duración del cohete
+      }
+    });
+  </script>
+</body>
+</html>
